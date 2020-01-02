@@ -1,6 +1,4 @@
-# FTRL-pytorch
-
-## Example
+## Usage
 
 ```python
 >>> from ftrl import FTRL
