@@ -47,25 +47,32 @@ optimizer = FTRL(
 )
 
 # Train
-iter = 0
-for images, labels in trainloader:
+for i, (images, labels) in enumerate(trainloader, 1):
     images = images.view(-1, input_size)
     optimizer.zero_grad()
     outputs = model(images)
     loss = loss_fn(outputs, labels)
     loss.backward()
     optimizer.step()
-    iter += 1
-    if iter % 100 == 0:
-        correct = 0
-        total = 0
-        for images, labels in testloader:
-            images = images.view(-1, input_size)
-            outputs = model(images)
-            _, predicted = torch.max(outputs.data, 1)
-            total += labels.size(0)
-            correct += (predicted == labels).sum()
-        accuracy = 100 * correct / total
-        print(
-            "Iteration: {}. Loss: {}. Accuracy: {}.".format(iter, loss.item(), accuracy)
-        )
+
+    if i % 100 == 0:
+        with torch.no_grad():
+            total = len(testloader.dataset)
+            correct = 0
+            for images, labels in testloader:
+                images = images.view(-1, input_size)
+                outputs = model(images)
+                _, predicted = torch.max(outputs.data, 1)
+                correct += (predicted == labels).sum()
+            accuracy = 100 * correct / total
+
+            num_zeros = (
+                model.W.weight.eq(0).sum().item() + model.W.bias.eq(0).sum().item()
+            )
+            total_params = model.W.weight.numel() + model.W.bias.numel()
+            sparsity = num_zeros / total_params
+            print(
+                "Iteration: {}. Loss: {}. Accuracy: {}. Sparsity: {}".format(
+                    i, loss.item(), accuracy, sparsity
+                )
+            )
